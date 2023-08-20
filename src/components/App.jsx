@@ -16,13 +16,13 @@ export default function App() {
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [currentPicture, setCurrentPicture] = useState(null);
-  const [firstMount, setFirstMount] = useState(true);
+ // const [Mount, setMount] = useState(true);
 
   useEffect(() => {
-    if (firstMount) {
-      setFirstMount(false);
-      return;
-    }
+  //  if (Mount) {
+     // setMount(false);
+     // return;
+  //  }
     fetchPicturesApi(name, page)
       .then(pictures => {
         if (pictures.total === 0) {
