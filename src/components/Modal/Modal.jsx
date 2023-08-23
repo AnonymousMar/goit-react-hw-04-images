@@ -1,37 +1,39 @@
 import { useEffect } from 'react';
-import css from './Modal.module.css';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
+import css from './Modal.module.css';
 
-export default function Modal({ picture, closeModal }) {
+export default function Modal({ largeImageURL, onToggleModal }) {
     useEffect(() => {
-        window.addEventListener('keydown', closePictureByEscape);
-        return () => {
-            window.removeEventListener('keydown', closePictureByEscape);
+        const handleKeyDown = e => {
+            if (e.code === 'Escape') {
+                onToggleModal();
+            }
         };
-    });
+        window.addEventListener('keydown', handleKeyDown);
 
-    const closePicture = e => {
-        if (e.target === e.currentTarget) {
-            closeModal(false);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onToggleModal]);
+
+    const handleBackdropClick = e => {
+        if (e.currentTarget === e.target) {
+            onToggleModal();
         }
     };
 
-    const closePictureByEscape = e => {
-        if (e.code === 'Escape') {
-            closeModal(false);
-        }
-    };
-
-    return (
-        <div className={css.Overlay} onClick={e => closePicture(e)}>
+    return createPortal(
+        <div className={css.Overlay} onClick={handleBackdropClick}>
             <div className={css.Modal}>
-                <img id={picture.id} src={picture.largeImageURL} alt={picture.tags} />
+                <img src={largeImageURL} alt="" />
             </div>
-        </div>
+        </div>,
+        document.querySelector('#modalPortal'),
     );
 }
 
+
 Modal.propTypes = {
-    picture: PropTypes.object,
-    closeModal: PropTypes.func,
+    onToggleModal: PropTypes.func.isRequired,
 };

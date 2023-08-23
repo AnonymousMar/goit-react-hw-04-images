@@ -1,92 +1,107 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect,  } from 'react';
+
+import Container from './Container/Container';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
-import ImageGalleryItem from './ImageGalleryItem/ImageGalleryItem';
+import Loader from './Loader/Loader';
 import Button from './Button/Button';
 import Modal from './Modal/Modal';
-import Loader from './Loader/Loader';
-import fetchPicturesApi  from 'services/imagesAPI';
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import ErrorMsg from './ErrorMsg/ErrorMsg';
+
+import { ToastContainer } from 'react-toastify';
+
+import 'react-toastify/dist/ReactToastify.css';
+import apiService from 'services/imagesAPI';
 
 export default function App() {
-  const [name, setName] = useState('');
+  const [query, setQuery] = useState('');
+  const [images, setImages] = useState([]);
+  const [largeImageURL, setlargeImageURL] = useState('');
   const [page, setPage] = useState(1);
-  const [pictures, setPictures] = useState([]);
-  const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [currentPicture, setCurrentPicture] = useState(null);
- // const [Mount, setMount] = useState(true);
 
   useEffect(() => {
-  //  if (Mount) {
-     // setMount(false);
-     // return;
-  //  }
-    fetchPicturesApi(name, page)
-      .then(pictures => {
-        if (pictures.total === 0) {
-          setError(`We don't have picture: ${name}`);
-          setStatus('rejected');
-        } else {
-          setPictures(prevState => [...prevState, ...pictures.hits]);
-          setStatus('resolved');
-        }
-      })
-      .catch(error => {
-        setError(error);
-        setStatus('rejected');
-      });
-  }, [name, page]);
-
-  const formSubmit = name => {
-  //  setName(name);
-   // setPictures([]);
-  //  setPage(1);
-  //  setStatus('pending');
-    if (useState.name === name) {
-      Notify.failure('We already found images. Please, enter another phrase.');
-
+    if (!query) {
+      return;
     }
-    else {
-      setName(name);
-      setPictures([]);
-      setPage(1);
-      setStatus('pending');
-    };
-  };
-  
 
-  const openModal = (id, largeImageURL, tags) => {
-    setShowModal(true);
-    setCurrentPicture({ id, largeImageURL, tags });
+    const fetchImages = async () => {
+      try {
+        const request = await apiService(query, page);
+
+        if (request.length === 0) {
+          return setError(`No photo '${query}' `);
+        }
+
+        setImages(prevImages => [...prevImages, ...request]);
+      } catch (error) {
+        setError('Something went wrong. Try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchImages();
+  }, [query, page]);
+
+  const serchImages = newSearch  => {
+    if (useState.newSearch === newSearch) {
+      return setError('We already found images. Please, enter another phrase.'); 
+    } else {
+      setQuery(newSearch);
+      setImages([]);
+      setPage(1);
+      setError(null);
+      setIsLoading(true);
+    }
+   
+    
+  };
+
+  const onLoadMore = () => {
+    setIsLoading(true);
+    setPage(prevPage => prevPage + 1);
+    scrollPage();
+  };
+
+  const onOpenModal = e => {
+    setlargeImageURL(e.target.dataset.source);
+    toggleModal();
+  };
+
+  const toggleModal = () => {
+    setShowModal(!showModal);
+  };
+
+  const scrollPage = () => {
+    setTimeout(() => {
+      window.scrollBy(0, window.innerHeight + 150);
+    }, 1000);
   };
 
   return (
-    <div className="App">
-      <Searchbar onSubmit={formSubmit} />
-      {status === 'pending' && <Loader />}
-      {status === 'resolved' && (
-        <>
-          <ImageGallery>
-            {pictures.map(({ id, tags, webformatURL, largeImageURL }) => (
-              <ImageGalleryItem
-                key={id}
-                id={id}
-                tags={tags}
-                webformatURL={webformatURL}
-                largeImageURL={largeImageURL}
-                openModal={openModal}
-              />
-            ))}
-          </ImageGallery>
-          <Button loadMore={setPage} />
-        </>
-      )}
-      {showModal && (
-        <Modal picture={currentPicture} closeModal={setShowModal} />
-      )}
-      {status === 'rejected' && <h1>{error}</h1>}
-    </div>
+    <>
+      <Container>
+        <Searchbar onHandleSubmit={serchImages} />
+
+        {error && <ErrorMsg texterror={error} />}
+
+        {images.length > 0 && (
+          <ImageGallery images={images} onOpenModal={onOpenModal} />
+        )}
+
+        {isLoading && <Loader />}
+
+        {!isLoading && images.length > 0 && <Button onLoadMore={onLoadMore} />}
+
+        {showModal && (
+          <Modal onToggleModal={toggleModal} largeImageURL={largeImageURL} />
+        )}
+
+        <ToastContainer autoClose={5000} />
+      </Container>
+    </>
   );
 }

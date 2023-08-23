@@ -1,28 +1,28 @@
-import css from './ImageGalleryItem.module.css';
+import React from 'react';
 import PropTypes from 'prop-types';
+import css from './ImageGalleryItem.module.css';
 
 export default function ImageGalleryItem({
-    id,
-    tags,
     webformatURL,
     largeImageURL,
-    openModal,
+    tags,
+    onOpenModal,
 }) {
     return (
-        <li id={id} className={css.ImageGalleryItem}>
+        <li className={css.ImageGalleryItem}>
             <img
-                className={css.ImageGalleryItemImage}
                 src={webformatURL}
                 alt={tags}
-                onClick={() => openModal(id, largeImageURL, tags)}
+                data-source={largeImageURL}
+                className={css.image}
+                onClick={onOpenModal}
             />
         </li>
     );
 }
 
 ImageGalleryItem.propTypes = {
-    id: PropTypes.number,
-    webformatURL: PropTypes.string,
-    largeImageURL: PropTypes.string,
-    openModal: PropTypes.func,
+    largeImageURL: PropTypes.string.isRequired,
+    tags: PropTypes.string.isRequired,
+    webformatURL: PropTypes.string.isRequired,
 };
