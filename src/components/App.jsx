@@ -7,7 +7,8 @@ import Loader from './Loader/Loader';
 import Button from './Button/Button';
 import Modal from './Modal/Modal';
 import ErrorMsg from './ErrorMsg/ErrorMsg';
-
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 
 import 'react-toastify/dist/ReactToastify.css';
@@ -47,8 +48,8 @@ export default function App() {
   }, [query, page]);
 
   const serchImages = newSearch  => {
-    if (useState.newSearch === newSearch) {
-      return setError('We already found images. Please, enter another phrase.'); 
+    if (query === newSearch) {
+      return toast.error('We already found images. Please, enter another phrase.'); 
     } else {
       setQuery(newSearch);
       setImages([]);
